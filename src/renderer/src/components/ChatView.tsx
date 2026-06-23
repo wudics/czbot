@@ -155,7 +155,9 @@ export default function ChatView({ onOpenSidebar, sessionId, onNewSession, initi
     if (weknoraKbIds.length > 0) {
       const names = weknoraKbs.filter(k => weknoraKbIds.includes(k.id)).map(k => k.name).join('、')
       const ids = weknoraKbIds.join(', ')
-      system = `用户已选择以下知识库：${names}（ID: ${ids}）\n如需要查询知识库获取信息，请使用 weknora_search 工具，并传入对应的知识库 ID。`
+      system = `用户已选择以下知识库：${names}（ID: ${ids}）
+如需精确搜索原始文本块，使用 search 工具；
+如需智能问答（含知识图谱增强），使用 knowledge_chat 工具。`
     }
     sendMessage(text, system || undefined, files, activeAgent)
   }, [weknoraKbIds, weknoraKbs, activeAgent, sendMessage])

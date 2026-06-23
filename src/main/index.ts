@@ -642,6 +642,7 @@ app.whenReady().then(async () => {
       return { success: false, error: 'opencode 未就绪或缺少 sessionId' }
     }
     currentSessionId = sessionId
+    Object.keys(partTypes).forEach(key => delete partTypes[key])
     try {
       const savedConfig = loadConfig()
 

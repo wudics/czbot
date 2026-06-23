@@ -342,3 +342,124 @@ const [isStreaming, setIsStreaming] = useState(false)
 | `package.json` | 修改 | 新增 `extraResources` 配置包含 `weknora-mcp.js` |
 | `src/main/configStore.ts` | 修改 | `webSearch` → `webInfo` 重命名，语义更清晰（控制一切网络信息获取） |
 | `src/renderer/src/components/SettingsDialog.tsx` | 修改 | 移除互联网搜索开关 UI；`handleSave` 使用最新 config 的 `webInfo` 防止覆盖工具栏设置 |
+
+## knowledge_chat 工具
+
+### 背景
+
+2026-06-23 新增 `knowledge_chat` 工具，基于 Weknora 知识图谱增强检索（图查询）的智能问答，与 `search`（精确检索原始文本）互补：
+
+| 工具 | 用途 | 响应方式 | 适用场景 |
+|------|------|---------|---------|
+| `search` | 精确检索原始文本片段 | 同步 JSON | 查找原文、获取引用 |
+| `knowledge_chat` | 图增强智能问答 | SSE 流 → JSON | 综合分析、多步推理、关联知识 |
+
+### MCP 脚本修改
+
+`resources/weknora-mcp.js` 注册第二个工具：
+
+```js
+{
+  name: 'knowledge_chat',
+  description: `基于知识库进行智能问答。会通过知识图谱增强检索（图查询），返回 JSON 格式的自然语言答案及引用来源。`,
+  inputSchema: {
+    properties: {
+      query: { type: 'string', description: '用户问题' },
+      kb_ids: { type: 'array', items: { type: 'string' }, description: '知识库 ID 列表（可选）' },
+      agent_id: { type: 'string', description: 'Agent ID（可选）' },
+    },
+    required: ['query'],
+  },
+}
+```
+
+### SSE 流处理
+
+`knowledge_chat` 调用 `POST /api/v1/knowledge-chat/{sessionId}`，返回 SSE 流。解析逻辑：
+
+```
+事件格式:
+  event:message\n
+  data:{"response_type":"thinking"|"answer"|"references"|"complete", "content":"...", "done":bool}\n\n
+
+处理:
+  references → 累积到 refs[]
+  answer     → 逐 chunk 拼接到 answer
+  thinking   → 忽略（非最终答案）
+  complete   → 忽略
+```
+
+### SSE 解析修复
+
+**问题**: `data:` 前缀可能带空格（`data: {json}`）或不带空格（`data:{json}`），取决于服务器实现。
+
+**修复**（2026-06-23）：
+
+| 行 | 改前 | 改后 |
+|----|------|------|
+| `startsWith` | `line.startsWith('data: ')` | `line.startsWith('data:')` |
+| JSON 提取 | `line.slice(6)` | `line.slice(5).trim()` |
+
+### 超时架构
+
+**问题**: `knowledge_chat` 引入 LLM + SSE 后，耗时不定（数秒到数分钟）。原 120s 硬性 MCP 超时对 SSE 流不够灵活。
+
+ **方案**: 双层超时（2026-06-23），后调整为 5 分钟：
+
+```
+┌─────────────────────────────────────┐
+│ 外层（main/index.ts）               │
+│ timeout: 移除（无限制）              │
+│ 仅作用于 weknora MCP server         │
+│ 其他 MCP 不受影响                   │
+└──────────┬──────────────────────────┘
+           │
+┌──────────▼──────────────────────────┐
+│ 内层（weknora-mcp.js）              │
+│                                     │
+│ search:                             │
+│   fetch + AbortSignal.timeout(300s) │
+│   单次请求硬超时                     │
+│                                     │
+│ knowledge_chat:                     │
+│   Promise.race([                    │
+│     reader.read(),                  │
+│     idleTimeout(300s)               │
+│   ])                                │
+│   收到 data: 自动续期               │
+│   300s 无数据 → 返回已有结果        │
+└─────────────────────────────────────┘
+```
+
+**文件修改**：
+
+| 文件 | 操作 |
+|------|------|
+| `src/main/index.ts:177` | 删除 `timeout: 120_000` |
+| `resources/weknora-mcp.js` | `search` 的 fetch 加 `signal: AbortSignal.timeout(300000)` |
+| `resources/weknora-mcp.js` | `knowledge_chat` SSE 循环改用 `Promise.race` idle timeout（300s） |
+
+### Session 管理
+
+`knowledge_chat` 调用前先通过 `POST /api/v1/sessions` 创建会话，标题为 `mcp-{timestamp}`。随时间推移会积累大量 mcp 会话。
+
+#### curl 命令
+
+```bash
+# 查看所有会话
+curl -s "${WEKNORA_URL}/api/v1/sessions" \
+  -H "X-API-Key: ${WEKNORA_API_KEY}" | jq .
+
+# 删除单个会话
+curl -s -X DELETE "${WEKNORA_URL}/api/v1/sessions/${SESSION_ID}" \
+  -H "X-API-Key: ${WEKNORA_API_KEY}"
+
+# 批量删除 mcp 创建的会话（先列出再逐个删）
+curl -s "${WEKNORA_URL}/api/v1/sessions" \
+  -H "X-API-Key: ${WEKNORA_API_KEY}" | \
+  jq -r '.data[] | select(.title | startswith("mcp-")) | .id' | \
+  while read id; do
+    curl -s -X DELETE "${WEKNORA_URL}/api/v1/sessions/$id" \
+      -H "X-API-Key: ${WEKNORA_API_KEY}"
+  done
+```

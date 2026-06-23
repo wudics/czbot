@@ -207,7 +207,7 @@ export function useChat(onAutoTitle?: (title: string) => void) {
           const parts = m.parts ? [...m.parts] : []
           const last = parts[parts.length - 1]
           if (last && last.type === 'reasoning') {
-            ;(last as ReasoningPart).text += delta
+            parts[parts.length - 1] = { ...last, text: last.text + delta }
           } else {
             parts.push({ type: 'reasoning', text: delta })
           }
