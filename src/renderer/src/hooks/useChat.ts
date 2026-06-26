@@ -174,7 +174,9 @@ export function useChat(onAutoTitle?: (title: string) => void) {
 
   const sendMessage = useCallback(async (text: string, system?: string, files?: string[], agentId?: string) => {
     const sid = sessionIdRef.current
-    if (!sid) return
+    if (!sid) {
+      return
+    }
 
     setIsLoading(true)
 

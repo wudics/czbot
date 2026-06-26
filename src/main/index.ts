@@ -233,6 +233,8 @@ async function restartOpencode(config: AppConfig) {
       ...(Object.keys(agentOverrides).length > 0 ? { permission: { ...basePermission, ...agentOverrides } } : {}),
     }
   }
+  process.env.XDG_DATA_HOME = app.getPath('userData')
+
   const { createOpencode } = await import('@opencode-ai/sdk/v2')
   const { client, server } = await createOpencode({
     port: 0,
@@ -651,7 +653,6 @@ app.whenReady().then(async () => {
       )
       const tc = providerCfg?.modelCfg?.tool_call
       const toolcall = tc === undefined ? true : tc !== false
-
       if (!toolcall) {
         const finalParts = parts && parts.length > 0 ? parts : [{ type: 'text', text }]
         ;(async () => {
@@ -680,7 +681,6 @@ app.whenReady().then(async () => {
         ...(system ? { system } : {}),
         parts: finalParts,
       })
-
       const timeout = setTimeout(() => {
         mainWindow?.webContents.send('stream-error', { message: '响应超时（1h）' })
       }, 3600000)
@@ -756,7 +756,7 @@ app.whenReady().then(async () => {
             }
             if (event.type === 'question.asked') {
               const props = (event as any).properties
-  mainWindow?.webContents.send('stream-question', {
+              mainWindow?.webContents.send('stream-question', {
                 id: props.id,
                 questions: props.questions || [],
               })
