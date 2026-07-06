@@ -9,7 +9,7 @@ function friendlyError(err: any): string {
   const status = data?.statusCode || 0
 
   if (status === 401 || status === 403 || msg.includes('Authorization') || msg.includes('API key') || msg.includes('apiKey')) {
-    return 'API Key 未配置或无效，请在设置中检查 Provider 的 API Key 配置'
+    return 'API Key 未配置或无效，请在设置中配置 API Key 或使用免费模型'
   }
   if (status === 400 && msg.includes('Content Exists Risk')) {
     return '请求被内容安全策略拦截，请换个方式描述问题'

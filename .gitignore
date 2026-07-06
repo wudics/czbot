@@ -18,7 +18,7 @@ Thumbs.db
 # Runtime
 workspace/
 config.json
-tdbot.db
+czbot.db
 *.log
 
 # Environment

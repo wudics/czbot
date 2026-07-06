@@ -56,12 +56,12 @@ function CodeBlock({ language, code }: { language?: string; code: string }) {
         </div>
       </div>
       {wordWrap ? (
-        <pre className="p-4 text-sm whitespace-pre-wrap break-all bg-background">
+        <pre className="p-4 text-sm whitespace-pre-wrap break-all bg-background text-foreground">
           <code className={`language-${language || ''}`} dangerouslySetInnerHTML={{ __html: html }} />
         </pre>
       ) : (
         <div className="overflow-x-auto" style={{ display: 'grid', gridTemplateColumns: 'minmax(0, 1fr)' }}>
-          <pre className="p-4 text-sm whitespace-pre bg-background">
+          <pre className="p-4 text-sm whitespace-pre bg-background text-foreground">
             <code className={`language-${language || ''}`} dangerouslySetInnerHTML={{ __html: html }} />
           </pre>
         </div>
@@ -392,7 +392,7 @@ export default function MessageItem({ message, isStreaming, agents }: MessageIte
                 return <code className="text-sm bg-muted/50 px-1 rounded" {...props}>{children}</code>
               },
               a({ href, children }) {
-                return <a href={href} target="_blank" rel="noreferrer" className="text-primary underline">{children}</a>
+                return <a href={href} target="_blank" rel="noreferrer" className="underline">{children}</a>
               },
               table({ children }) {
                 return <div className="overflow-x-auto my-2"><table className="border-collapse border border-border text-sm">{children}</table></div>

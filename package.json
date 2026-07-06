@@ -1,7 +1,7 @@
 {
-  "name": "tdbot",
+  "name": "czbot",
   "version": "1.0.0",
-  "description": "桌面智能体 - 基于 opencode SDK",
+  "description": "村长智能体 - 基于 opencode SDK",
   "main": "out/main/index.js",
   "scripts": {
     "dev": "electron-vite dev",
@@ -11,8 +11,8 @@
     "dist:win": "electron-vite build && electron-builder --win --dir"
   },
   "build": {
-    "appId": "com.tidubot.app",
-    "productName": "梯度小助手",
+    "appId": "com.czbot.app",
+    "productName": "村长智能体",
     "icon": "resources/icon.png",
     "directories": {
       "output": "dist"

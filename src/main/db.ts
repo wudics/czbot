@@ -7,7 +7,7 @@ let dbPath: string
 export async function initDatabase() {
   const dir = process.cwd()
   if (!existsSync(dir)) mkdirSync(dir, { recursive: true })
-  dbPath = join(dir, 'tdbot.db')
+  dbPath = join(dir, 'czbot.db')
 
   const SQL = await initSqlJs()
   const buffer = existsSync(dbPath) ? readFileSync(dbPath) : null

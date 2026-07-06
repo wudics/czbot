@@ -59,7 +59,7 @@ function CodeBlock({ language, code }: { language?: string; code: string }) {
         <span>{language || 'code'}</span>
         <button onClick={handleCopy}>{copied ? '已复制' : '📋'}</button>
       </div>
-      <pre className="p-4 overflow-x-auto text-sm bg-background">
+      <pre className="p-4 overflow-x-auto text-sm bg-background text-foreground">
         <code dangerouslySetInnerHTML={{ __html: html }} />
       </pre>
     </div>
@@ -71,7 +71,7 @@ function CodeBlock({ language, code }: { language?: string; code: string }) {
 
 | 元素 | 渲染 |
 |------|------|
-| 链接 | `<a href={href} target="_blank" rel="noreferrer" className="text-primary underline">` |
+| 链接 | `<a href={href} target="_blank" rel="noreferrer" className="underline">` |
 | 表格 | `<div overflow-x-auto><table border-collapse>` → `<th>`/`<td>` 带边框 |
 | 行内代码 | `<code className="text-sm bg-muted/50 px-1 rounded">` |
 

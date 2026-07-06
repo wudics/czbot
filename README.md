@@ -1,4 +1,4 @@
-# 梯度小助手 (tdbot)
+# 村长智能体 (czbot)
 
 基于 opencode SDK 的桌面智能体应用，支持多模型提供商、自定义 Agent、Skills/MCP 插件、文件附件和权限管理。
 
@@ -11,7 +11,7 @@
 - **文件附件** — 支持图片拖拽/选择上传，非 toolcall 模型通过 base64 `image_url` 直调 API
 - **权限管理** — 运行时权限弹卡，支持"允许一次"和"始终允许"（会话级缓存）
 - **深色模式** — 完整深色主题
-- **WeKnora 集成** — 知识库检索，RAG 增强
+- **WeKnora 集成** — 知识库检索，RAG 增强，可明确使用MCP工具：weknora_search为普通检索、weknora_knowledge_cat为图谱增强检索，注意：图谱增强检索需要weknora后台知识库配置了图谱功能和AI智能体才能正常使用
 
 ## 快速开始
 
